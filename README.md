@@ -219,6 +219,142 @@ SpringMVC 是 Spring 为**表述层**提供的一整套完备的解决方案，�
 
 ![image-20220112145530712](README.assets/image-20220112145530712.png)
 
+## @RequestMapping 注解
+
+**功能**：将指定的请求和控制器的方法关联起来，建立映射关系
+
+**注解位置**：
+
+- 类：访问该类中的所有接口都需要加上对应的路径
+- 方法：访问该接口方法的请求路径
+
+```java
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+    @RequestMapping("/home")
+    public String toUserHome(){
+        return "/home";
+    }
+
+}
+```
+
+> 需要访问 `/user/home` 才能访问到上述接口
+
+**注解属性**：
+
+1. value - **必须设置**
+
+   作用：定义访问该接口的请求路径
+
+   实例：属性值为字符串数组，支持不同请求地址访问一个接口
+
+   ```java
+   @RequestMapping(
+       value = {"/home", "/test"},
+   )
+   ```
+   
+2. method
+
+   作用：定义访问该接口的请求类型
+
+   实例：支持不同请求类型访问一个接口; 如果不写默认是支持所有请求
+
+   ```java
+   @RequestMapping(
+       value = {"/home", "/test"},
+       method = {RequestMethod.POST, RequestMethod.GET}
+   )
+   ```
+
+   注：对于 `method` 属性，SpringMVC 基于 **@RequestMapping** 提供了派生注解
+
+   @GetMapping -> @RequestMapping(method=RequestMethod.GET)
+
+   @PostMapping -> @RequestMapping(method=RequestMethod.POST)
+
+   @PutMapping -> @RequestMapping(method=RequestMethod.PUT)
+
+   @DelateMapping -> @RequestMapping(method=RequestMethod.DELETE)
+
+3. params
+
+   作用：字符串数组，定义访问该接口的请求参数，且必须都满足才可以
+
+   实例：
+
+   ```java
+   @GetMapping(
+       value = "/testRequestParamsAndHeader",
+       params = {
+           "username", // 必须携带 username 参数
+           "!password", // 不能携带 password 参数
+           "age=7", // age 请求参数值必须为 7
+           "sex!=2" // sex 请求参数的值不能为 2
+       }
+   )
+   public String testRequestParamsAndHeader() {
+       return "/success";
+   }
+   ```
+
+   
+
+   ```html
+   <!-- GET 请求，() 内表示请求参数 -->
+   <a th:href="@{/user/testRequestParamsAndHeader(username='111',age=8,sex=2)}">测试 testRequestParamsAndHeader</a>
+   ```
+
+4. headers
+
+   作用：字符串数组，定义访问该接口的请求头信息，且必须都满足才可以
+
+   实例：写法和 `params` 属性值一样
+
+   ```java
+   @GetMapping(
+       value = "/testRequestParamsAndHeader",
+       headers = {
+           "Host=localhost:8080" // Host 属性值必须为 localhost:8080
+       }
+   )
+   ```
+
+   注意：当 `headers` 属性不匹配时，响应状态码为 **404**
+
+**Ant 风格**：@RequestMapping 注解中 `value` 属性值支持 Ant 风格的路径
+
+? ：表示任意单个字符
+
+\* ：表示任意零个或多个字符
+
+**：表示任意的一层或多层目录
+
+```java
+@RequestMapping('/byq/**/txdy')
+```
+
+**占位符**：
+
+作用：获取请求路径上的值
+
+使用：配合 **@PathVariable** 一起使用
+
+```java
+@GetMapping("/testPathVariable/{id}/{username}")
+public String testPathVariable(@PathVariable("id") Integer id, @PathVariable("username") String username) {
+    System.out.println("id:" + id + ", username:" + username);
+    return "/success";
+}
+```
+
+其中 `{}` 表示占位符，可以通过 **@PathVariable** 注解并指定其 `value` 属性获取占位符上的数据
+
+注：多在 Restful 风格的 api 接口中使用
+
 ## Restful
 
 ## 执行流程
