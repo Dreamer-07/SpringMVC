@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Success</title>
+</head>
+<body>
+success <br />
+<p th:text="${forServletApi} + '-- 来自于 servlet api'"></p>
+<p th:text="${forModelAndView} + '-- 来自于 model and view'"></p>
+<p th:text="${forModel} + '-- 来自于 model'"></p>
+<p th:text="${forMap} + '-- 来自于 map'"></p>
+<p th:text="${forModelMap} + '-- 来自于 model map'"></p>
+<p th:text="${session.testByServletApi} + ' -- 通过 servlet api 向 session 域中共享数据'"></p>
+<p th:text="${application.testByServletApi} + ' -- 通过 servlet api 向 application 域中共享数据'"></p>
+</body>
+</html>

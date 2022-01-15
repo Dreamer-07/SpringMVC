@@ -541,6 +541,101 @@ public String testPojo(User user) {
 </filter-mapping>
 ```
 
+## 域对象共享数据
+
+### 通过 servlet api 向 request 域对象共享数据
+
+```java
+@GetMapping("/servletApi")
+public String byServletApi(HttpServletRequest request) {
+    request.setAttribute("forServletApi", "byqtxdy");
+    return "success";
+}
+```
+
+### 使用 ModelAndView 向 request 域对象共享数据
+
+```java
+@GetMapping("/mav")
+public ModelAndView byModelAndView() {
+    ModelAndView mav = new ModelAndView();
+    // 设置模型数据到 request 域中
+    mav.addObject("forModelAndView", "hhhhh");
+    // 设置视图名
+    mav.setViewName("success");
+    return mav;
+}
+```
+
+> 视图名就是原返回字符串
+
+### 使用 Model 向 request 域对象共享数据
+
+```java
+@GetMapping("/model")
+public String byModel(Model model) {
+    // 设置模型数据到 request 域中
+    model.addAttribute("forModel", "tomoetyann");
+    return "success";
+}
+```
+
+### 使用 Map 向 request 域对象共享数据
+
+```java
+@GetMapping("/map")
+public String byMap(Map<String, Object> dataMap) {
+    dataMap.put("forMap", "通过 map 向 request 域中存储数据");
+    return "success";
+}
+```
+
+### 使用 ModelMap 向 request 域对象共享数据
+
+```java
+@GetMapping("/modelMap")
+public String byModelMap(ModelMap modelMap) {
+    modelMap.addAttribute("forModelMap", "testForModelMap");
+    return "success";
+}
+```
+
+### Map, Model, ModelMap 的关系
+
+可以通过 `.getClass().getName()` 查看三者具体的参数类型，可以发现它们都是由一个东西实现的，也就是 **BindingAwareModelMap** 类型
+
+```java
+public interface Model{}
+public class ModelMap extends LinkedHashMap<String, Object>{}
+public class ExtendedModelMap extends ModelMap implements Model {}
+public class BindingAwareModelMap extends ExtendedModelMap {}
+```
+
+> 注：更推荐使用 **ModelAndView**，因为其他几种在底层中最后也会通过 **ModelAndView** 实现
+
+### 向 session 域中共享数据
+
+> 虽然 SpringMVC 提供了相关注解可以使用，但对比原生 Servlet API 更方便
+
+```java
+@GetMapping("/servletApi")
+public String byServletApi(HttpSession session) {
+    session.setAttribute("testByServletApi", "session data");
+    return "success";
+}
+```
+
+### 向 application 域中共享数据
+
+```java
+public String byServletApi(HttpSession session) {
+    // 通过 session 获取上下文对象
+    ServletContext application = session.getServletContext();
+    application.setAttribute("testByServletApi", "application data");
+    return "success";
+}
+```
+
 
 
 ## Restful

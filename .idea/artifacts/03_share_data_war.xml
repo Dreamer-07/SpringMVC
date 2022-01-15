@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="03-share-data:war">
+    <output-path>$PROJECT_DIR$/03-share-data/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <exploded>false</exploded>
+        <module>03-share-data</module>
+        <packaging>war</packaging>
+        <unpackNestedArchives>false</unpackNestedArchives>
+      </options>
+    </properties>
+    <root id="archive" name="03-share-data-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="03-share-data:war exploded" />
+    </root>
+  </artifact>
+</component>
