@@ -355,6 +355,194 @@ public String testPathVariable(@PathVariable("id") Integer id, @PathVariable("us
 
 注：多在 Restful 风格的 api 接口中使用
 
+## 获取请求参数
+
+### 通过 servlet api 获取
+
+```java
+@GetMapping("/testServletApi")
+public String testServletApi(HttpServletRequest request){
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
+    System.out.println(username + "-" + password);
+    return "success";
+}
+```
+
+基本上不用这种方式
+
+### 通过控制器方法的形参获取请求参数
+
+在定义控制器时，可以**设置和请求参数同名的形参**，当游览器发送请求时，SpringMVC 会自动将请求参数映射到对应的形参
+
+```java
+@GetMapping("/testParam")
+public String testParam(String username, String password, String[] hobby) {
+    // 对于请求参数中的同名多个值，可以用 String(每个值之间用,分割) / String[] 接收
+    System.out.println(username + "-" + password + "-" + Arrays.toString(hobby));
+    return "success";
+}
+```
+
+注意：若存在多个同名的请求参数，可以用 String(每个值之间用,分割) / String[] 接收
+
+### @RequestParam
+
+作用：将请求参数和控制器方法形参创建映射关系
+
+注解属性：
+
+1. `value`：指定该形参对应的请求参数
+
+2. `required`：是否必须传输该参数，默认值为 **true**
+
+   当设置为 true 时，表示该请求必须传输指定的请求参数，若没有传输，且没有设置 `defaultValue` 属性，就会报错;
+
+   当设置为 false 时，若没有传输请求参数，该形参为 **null**(有 `defaultValue` 就是 `defaultValue `的值)
+
+3. `defaultValue`：不管 `required ` 属性值为 true / false，当指定的请求参数没有传输或传输值为 ""，则使用该默认值为形参赋值
+
+使用：
+
+```java
+@GetMapping("/testRequestParam")
+public String testRequestParam(
+    @RequestParam(value = "user_name", defaultValue = "byqtxdy") String username,
+    @RequestParam(defaultValue = "123456") String password
+) {
+    System.out.println(username + "-" + password);
+    return "success";
+}
+```
+
+### @RequestHeader
+
+作用：将请求头信息和控制器方法的形参创建映射关系
+
+用法：和 **@RequestParam** 注解有一样的属性，用法同 **@RequestParam**
+
+### @CookieValue
+
+作用：将 cookie 数据和控制器方法的形参创建映射关系
+
+用法：和 **@RequestParam** 注解有一样的属性，用法同 **@RequestParam**
+
+### 通过 POJO 获取请求参数
+
+可以在控制器形参的位置设置一个实体类类型的形参，若请求参数中存在与实体类属性同名的情况，那么该请求参数的值就会为该属性赋值
+
+```html
+<form th:action="@{/param/testPoJO}" method="post">
+    用户名：<input type="text" name="username" /> <br/>
+    密码：<input type="password" name="password" /> <br />
+    性别： <input type="radio" name="sex" value="男">男 <input type="radio" name="sex" value="女"> 女 <br />
+    年龄：<input type="text" name="age"/><br />
+    邮箱：<input type="text" name="email"><br />
+    <input type="submit" />
+</form>
+```
+
+```java
+public class User {
+    private String username;
+
+    private String password;
+
+    private String sex;
+
+    private Integer age;
+
+    private String email;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+            "username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            ", sex='" + sex + '\'' +
+            ", age=" + age +
+            ", email='" + email + '\'' +
+            '}';
+    }
+
+}
+```
+
+```java
+@PostMapping("/testPoJO")
+public String testPojo(User user) {
+    System.out.println(user);
+    return "success";
+}
+```
+
+### 解决获取请求参数乱码的问题
+
+在 `web.xml`中注册 SpringMVC 提供的过滤器
+
+```xml
+<filter>
+    <filter-name>characterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <!-- 设置(请求&响应)编码格式 -->
+    <init-param>
+        <param-name>encoding</param-name>
+        <param-value>UTF-8</param-value>
+    </init-param>
+    <!-- 开启修改响应编码格式 -->
+    <init-param>
+        <param-name>forceResponseEncoding</param-name>
+        <param-value>true</param-value>
+    </init-param>
+</filter>
+<filter-mapping>
+    <filter-name>characterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+
+
 ## Restful
 
 ## 执行流程
