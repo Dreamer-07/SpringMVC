@@ -636,7 +636,62 @@ public String byServletApi(HttpSession session) {
 }
 ```
 
+## SpringMVC 的视图
 
+SpringMVC 提供了 View 接口，作用为渲染数据，将模型 Model 中的数据展示给用户
+
+SpringMVC 提供的视图种类很多，默认有 **转发视图** 和 **重定向视图**
+
+当工程中引入 `jstl` 时，**转发视图**会自动转换成 **JstlView**
+
+若使用的视图技术为 `Thymeleaf` ，通过此前配置的 SpringMVC 视图解析器，可以得到 **ThymeleafView**
+
+### ThymeleafView
+
+当控制器接口所返回的视图名称没有任何**前缀**时，此时的视图名称会被 SpringMVC 配置文件中所配置的视图解析器解析，视图名称拼接视图前缀和视图后缀所得到的最终路径，最终通过转发的方式实现跳转
+
+![image-20220116095907127](README.assets/image-20220116095907127.png)
+
+### 转发视图
+
+SpringMVC 中默认的转发视图为 **InternalResourceView**
+
+当控制器接口所返回的视图名称以 `forward:` 为前缀时，就会创建 InternalResourceView 视图，此时的视图名称不会被 SpringMVC 配置文件所配置的视图解析器解析，而是会将 `forward:` 去掉，剩余部分作为最终路径通过转发方式实现跳转
+
+```java
+@GetMapping("/forward")
+public String testInternalResourceView() {
+    return "forward:view/thymeleaf";
+}
+```
+
+![image-20220116101237697](README.assets/image-20220116101237697.png)
+
+### 重定向视图
+
+ SpringMVC 中默认的重定向视图为 **RedirectView**
+
+当控制器接口所返回的视图名称以 `redirect:` 为前缀时，就会创建 RedirectView 视图，此时的视图名称不会被 SpringMVC 配置文件所配置的视图解析器解析，而是会将 `redirect:` 去掉，剩余部分作为最终路径通过**重定向实现跳转**
+
+```java
+@GetMapping("/redirect")
+public String testRedirectView() {
+    return "redirect:http://www.baidu.com";
+}
+```
+
+![image-20220116102651554](README.assets/image-20220116102651554.png)
+
+### 视图控制器 view-controller
+
+当我们定义的控制器接口仅用来实现页面跳转，而不做任何逻辑处理时，可以将该接口在 SpringMVC 配置文件中用 `<view-controller>` 标签进行配置
+
+```xml
+<!-- 视图控制器 -->
+<mvc:view-controller path="/" view-name="index"/>
+```
+
+> 注：当在 SpringMVC 中使用任何一个 `view-controller`时，其他控制器接口的请求映射将全部失效，此时需要在 SpringMVC 配置文件中添加额外的标签: `<mvc:annotation-driven />`
 
 ## Restful
 

@@ -12,9 +12,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class RouterController {
 
-    @GetMapping({"/", "/index"})
-    public String routeIndex() {
-        return "index";
+    //@GetMapping({"/", "/index"})
+    //public String routeIndex() {
+    //    return "index";
+    //}
+
+    @GetMapping("/testView")
+    public String routeTestView() {
+        return "view";
     }
 
 }
