@@ -695,6 +695,56 @@ public String testRedirectView() {
 
 ## Restful
 
+### 简介
+
+REST：表现层(视图+控制器)资源状态转移
+
+![image-20220117085042256](README.assets/image-20220117085042256.png)
+
+### 实现
+
+基于 HTTP 协议实现的话，就要涉及到四个表示**操作方式**的动词：GET,POST,PUT,DELETE
+
+分别对应四种基本操作：GET 用来获取资源，POST 用来新建资源，PUT 用来更新资源，DELETE 用来删除资源
+
+REST 风格提倡 URL 地址使用统一的风格设计，从前到后各个单词使用斜杆分开，不使用传统的键值对方式来携带请求参数，而是将请求参数作为 URL 地址中的一部分，以保证整体风格的一致性
+
+![image-20220117090713433](README.assets/image-20220117090713433.png)
+
+### HiddenHttpMethodFilter
+
+对于原生的表单提交/点击超链接以及SpringMVC都是不支持直接发送 **PUT/ DELETE** 请求的
+
+在 `web.xml`中添加以下配置
+
+```xml
+<!-- 配置 HiddenHttpMethodFilter 让 SpringMVC 支持 PUT & DELETE 请求 -->
+<filter>
+    <filter-name>httpMethodFilter</filter-name>
+    <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>httpMethodFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+要想发送 PUT / DELETE 请求，需要满足两个条件：
+
+1. 表单提交方式为 **POST**
+
+   ```html
+   <form method="POST" th:action="${/user}">
+   ```
+
+2. 添加隐藏域表单项，其中 `name` 固定为 `_method`, `value` 为·**PUT/DELETE**
+
+   ```html
+   <input type="hidden" name="_method" value="PUT" />
+   ```
+
+注意：如果要同时使用 **CharacterEncodingFilter** 和 **HiddenHttpMethodFilter**，要让 **HiddenHttpMethodFilter** 的配置先于 **CharacterEncodingFilter**，这样才能保证都生效
+
 ## 执行流程
 
 ## 注解配置
