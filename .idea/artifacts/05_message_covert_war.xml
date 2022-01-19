@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="05-message-covert:war">
+    <output-path>$PROJECT_DIR$/05-message-covert/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <exploded>false</exploded>
+        <module>05-message-covert</module>
+        <packaging>war</packaging>
+        <unpackNestedArchives>false</unpackNestedArchives>
+      </options>
+    </properties>
+    <root id="archive" name="05-message-covert-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="05-message-covert:war exploded" />
+    </root>
+  </artifact>
+</component>

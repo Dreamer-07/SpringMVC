@@ -5,6 +5,7 @@
     <file type="web" url="file://$PROJECT_DIR$/02-api" />
     <file type="web" url="file://$PROJECT_DIR$/03-share-data" />
     <file type="web" url="file://$PROJECT_DIR$/04-rest-demo" />
+    <file type="web" url="file://$PROJECT_DIR$/05-message-covert" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
@@ -13,6 +14,7 @@
         <option value="$PROJECT_DIR$/02-api/pom.xml" />
         <option value="$PROJECT_DIR$/03-share-data/pom.xml" />
         <option value="$PROJECT_DIR$/04-rest-demo/pom.xml" />
+        <option value="$PROJECT_DIR$/05-message-covert/pom.xml" />
       </list>
     </option>
   </component>

@@ -883,6 +883,18 @@ public class EmployeeDao {
        })
    </script>
    ```
+   
+3. 注意：对于静态资源，需要在 `spring-mvc.xml` 中添加额外配置，静态资源直接放在 `webapp/static` 文件夹下就好了
+
+   ```xml
+   <!-- 处理静态资源的请求 -->
+   <mvc:default-servlet-handler />
+   
+   <!-- 开启 MVC 注解驱动 -->
+   <mvc:annotation-driven />
+   ```
+
+    原理：发送请求时依然先由 **DispatcherServlet** 处理，当其不能处理时(没有对应的接口请求映射)，就会由 `default-servlet-handler` 配置的 Handler 调用默认的 Servlet 来处理 
 
 > 实现添加功能
 
@@ -964,6 +976,166 @@ public class EmployeeDao {
        return "redirect:/employees";
    }
    ```
+
+## HttpMessageConverter
+
+ 作用：报文信息转换器，将请求报文转换为 java 对象，或将 java 对象转换为响应报文
+
+### @RequestBody
+
+ 作用：
+
+获取请求体，一般用来处理发送请求时 `content-type` 不是默认的 `application/x-www-form-urlcoded` 编码的内容，例如 `application/json 或者是 application/xml 等`。
+
+通过其可以将请求体中的**JSON字符串**绑定到相应的bean上，当然，也可以将其分别绑定到对应的字符串上。
+
+实例：注意控制台输出
+
+```html
+<h4>测试 @RequestBody</h4>
+<form th:action="@{/testRequestBody}" method="post">
+    username: <input type="text" name="username"/>
+    password: <input type="password" name="password" />
+    <input type="submit" value="测试@RequestBody">
+</form>
+```
+
+```java
+@PostMapping("/testRequestBody")
+public String testRequestBody(@RequestBody String userInfo) {
+    System.out.println(userInfo);
+    return "success";
+}
+```
+
+### RequestEntity
+
+作用：获取完整的请求报文(请求头 + 请求体)
+
+实例：泛型代表 Body 的类型
+
+```java
+@PostMapping("/testRequestEntity")
+public String testRequestEntity(RequestEntity<String> requestEntity) {
+    System.out.println("请求头:" + requestEntity.getHeaders());
+    System.out.println("请求体:" + requestEntity.getBody());
+    return "success";
+}
+```
+
+### @ResponseBody
+
+作用：将控制器返回值直接作为响应体返回
+
+实例：标注在控制器接口上
+
+```java
+@GetMapping("/testResponseBody")
+@ResponseBody
+public String testResponseBody() {
+    return "byqtxdy";
+}
+```
+
+### SpringMVC 处理 json
+
+1. 导入 `jackson` 依赖
+
+   ```xml
+   <dependency>
+       <groupId>com.fasterxml.jackson.core</groupId>
+       <artifactId>jackson-databind</artifactId>
+       <version>2.12.5</version>
+   </dependency>
+   ```
+
+2. 在 SpringMVC 配置文件种开启注解驱动
+
+   ```xml
+   <!-- 开启 MVC 注解驱动 -->
+   <mvc:annotation-driven />
+   ```
+
+3. 在控制器接口方法上标注 `@ResponseBody`注解即可
+
+   ```java
+   @GetMapping("/testResponseBodyJson")
+   @ResponseBody
+   public User testResponseBodyJson() {
+       return new User(1001, "巴御前", "天下第一");
+   }
+   ```
+
+4. 测试，访问游览器
+
+   ```json
+   {
+       id: 1001,
+       username: "巴御前",
+       password: "天下第一"
+   }
+   ```
+
+### SpringMVC 处理 ajax
+
+1. 修改请求超链接
+
+   ```html
+   <div id="app">
+       <h4>测试 SpringMVC 处理 Ajax</h4>
+       <a th:href="@{/testAjax}" @click.prevent="testAjax">测试 SpringMVC 处理 Ajax</a>
+   </div>
+   ```
+   
+   
+   
+   ```javascript
+   <script type="application/javascript" th:src="@{/static/js/vue.js}"></script>
+   <script type="application/javascript" th:src="@{/static/js/axios.min.js}"></script>
+   <script type="application/javascript">
+       new Vue({
+       el: "#app",
+       methods: {
+           testAjax(event) {
+               axios({
+                   method: 'post',
+                   url: event.target.href,
+                   data: {
+                       username: 'admin',
+                       password: '123456'
+                   }
+               }).then(function (response) {
+                   alert(response.data)
+               })
+           }
+       }
+   })
+   </script>
+   ```
+   
+2. 编写对应的接口
+
+   ```java
+   @PostMapping("/testAjax")
+   @ResponseBody
+   public String testAjax(@RequestBody User user) {
+       System.out.println(user);
+       return "success";
+   }
+   ```
+
+### @RestController
+
+作用：标注在控制器类上，为该类中所有的接口添加 `@ResponseBody` 注解
+
+```java
+@RestController
+public class TestController {
+```
+
+### ResponseEntity
+
+作用：用于接口的返回值类型，该接口的返回值就是响应到游览器的响应报文
 
 ## 执行流程
 
