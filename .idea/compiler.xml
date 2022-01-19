@@ -9,12 +9,14 @@
         <module name="01-hello-world" />
         <module name="02-api" />
         <module name="03-share-data" />
+        <module name="04-rest-demo" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="01-hello-world" target="1.8" />
       <module name="02-api" target="1.8" />
       <module name="03-share-data" target="1.8" />
+      <module name="04-rest-demo" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

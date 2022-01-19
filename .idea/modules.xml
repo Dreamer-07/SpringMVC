@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/01-hello-world/01-hello-world.iml" filepath="$PROJECT_DIR$/01-hello-world/01-hello-world.iml" />
       <module fileurl="file://$PROJECT_DIR$/02-api/02-api.iml" filepath="$PROJECT_DIR$/02-api/02-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/03-share-data/03-share-data.iml" filepath="$PROJECT_DIR$/03-share-data/03-share-data.iml" />
+      <module fileurl="file://$PROJECT_DIR$/04-rest-demo/04-rest-demo.iml" filepath="$PROJECT_DIR$/04-rest-demo/04-rest-demo.iml" />
     </modules>
   </component>
 </project>

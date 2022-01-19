@@ -745,6 +745,226 @@ REST 风格提倡 URL 地址使用统一的风格设计，从前到后各个单�
 
 注意：如果要同时使用 **CharacterEncodingFilter** 和 **HiddenHttpMethodFilter**，要让 **HiddenHttpMethodFilter** 的配置先于 **CharacterEncodingFilter**，这样才能保证都生效
 
+### 案例
+
+> 准备工作 - 实体类和DAO
+
+```java
+public class Employee {
+
+    private Integer id;
+    private String lastName;
+    private String email;
+    private Integer gender;
+
+	// 构造器
+    
+    // get, set...
+}
+```
+
+```java
+@Repository
+public class EmployeeDao {
+
+    private static Map<Integer, Employee> employees = null;
+    private static Integer initId = 1006;
+
+    static {
+        employees = new HashMap<Integer, Employee>();
+
+        employees.put(1001, new Employee(1001, "E-AA", "aa@163.com", 1));
+        employees.put(1002, new Employee(1002, "E-BB", "bb@163.com", 1));
+        employees.put(1003, new Employee(1003, "E-CC", "cc@163.com", 0));
+        employees.put(1004, new Employee(1004, "E-DD", "dd@163.com", 0));
+        employees.put(1005, new Employee(1005, "E-EE", "ee@163.com", 1));
+    }
+
+    public void saveOrUpdate(Employee employee) {
+        if(employee.getId() == null) {
+            employee.setId(initId++);
+        }
+        employees.put(employee.getId(), employee);
+    }
+
+    public Collection<Employee> getAll() {
+        return employees.values();
+    }
+
+    public Employee get(Integer id) {
+        return employees.get(id);
+    }
+
+    public void delete(Integer id) {
+        employees.remove(id);
+    }
+
+}
+```
+
+在 Controller 注入即可
+
+> 实现查看所有员工信息
+
+1. 编写接口
+
+   ```java
+   @GetMapping("/employees")
+   public String getAllEmployee(Model model) {
+       Collection<Employee> employees = employeeDao.getAll();
+       model.addAttribute("employees", employees);
+       return "employee_list";
+   }
+   ```
+
+2. 创建对应的页面 `employee_list.html` 并通过 thymeleaf 渲染数据 
+
+   ```html
+   <table id="dataTable" border="1" cellpadding="0" cellspacing="0" style="text-align: center">
+       <tr>
+           <th>id</th>
+           <th>lastName</th>
+           <th>email</th>
+           <th>gender</th>
+           <th>options</th>
+       </tr>
+       <tr th:each="employee : ${employees}">
+           <td th:text="${employee.id}"></td>
+           <td th:text="${employee.lastName}"></td>
+           <td th:text="${employee.email}"></td>
+           <td th:text="${employee.gender}"></td>
+           <td>
+               <a @click.prevent="deleteEmployee" th:href="@{'/employee/' + ${employee.id}}">delete</a>
+               <a href="">update</a>
+           </td>
+       </tr>
+   </table>
+   ```
+
+> 实现删除功能
+
+1. 编写 rest ful api 风格的接口
+
+   ```java
+   @DeleteMapping("/employee/{id}")
+   public String deleteEmployee(@PathVariable Integer id) {
+       employeeDao.delete(id);
+       // 重定向到请求所有员工信息的接口
+       return "redirect:/employees";
+   }
+   ```
+
+2. 使用超链接控制表单来发送请求，所以先引入 `vue.js`
+
+   ```html
+   <form id="deleteForm" method="post">
+       <input type="hidden" name="_method" value="delete" />
+   </form>
+   </body>
+   ```
+
+   
+
+   ```javascript
+   <script type="application/javascript" th:src="@{/static/vue.js}"></script>
+   <script type="application/javascript">
+       const vue = new Vue({
+           el: "#dataTable",
+           methods: {
+               // 删除员工信息
+               deleteEmployee(event) {
+                   const deleteForm = document.getElementById("deleteForm")
+                   // 添加 action
+                   deleteForm.action = event.target.href
+                   // 提交表单
+                   deleteForm.submit()
+               }
+           }
+       })
+   </script>
+   ```
+
+> 实现添加功能
+
+1. 添加视图控制器 `view-controller`
+
+   ```xml
+   <mvc:view-controller path="/toAdd" view-name="employee_add"/>
+   ```
+
+2. 创建 `employee_add.html`
+
+   ```html
+   <form th:action="@{/employee}" method="post">
+       lastName: <input type="text" name="lastName"/> <br/>
+       email: <input type="text" name="email"/> <br/>
+       gender: <input type="radio" name="gender" value="1"> male
+               <input type="radio" name="gender" value="0"> famale
+               <br />
+       <input type="submit" value="add">
+   </form>
+   ```
+
+3. 编写对应的接口
+
+   ```java
+   @PostMapping("/employee")
+   public String addEmployee(Employee employee) {
+       employeeDao.saveOrUpdate(employee);
+       return "redirect:/employees";
+   }
+   ```
+
+4. 在 `employee_list.html`中添加超链接跳转
+
+   ```html
+   <th>options( <a th:href="@{/toAdd}">add</a> )</th>
+   ```
+
+> 实现修改功能
+
+1. 回显数据 - 修改 `employee_list.html`超链接跳转
+
+   ```html
+   <a th:href="@{'/employee/' + ${employee.id}}">update</a>
+   ```
+   
+2. 回显数据 - 编写获取一个员工详细信息接口
+
+   ```java
+   @GetMapping("/employee/{id}")
+   public String getEmployeeDetail(@PathVariable Integer id, Model model) {
+       Employee employee = employeeDao.get(id);
+       model.addAttribute("employee", employee);
+       return "employee_update";
+   }
+   ```
+
+3. 编写 `employee_update.html`
+
+   ```html
+   <form th:action="@{/employee}" method="post">
+       <input type="hidden" name="_method" value="put" />
+       <input type="hidden" name="id" th:value="${employee.id}">
+       lastName: <input type="text" name="lastName" th:value="${employee.lastName}"/> <br/>
+       email: <input type="text" name="email" th:value="${employee.email}"/> <br/>
+       gender: <input type="radio" name="gender" value="1" th:field="${employee.gender}"> male
+               <input type="radio" name="gender" value="0" th:field="${employee.gender}"> famale
+               <br />
+       <input type="submit" value="update">
+   </form>
+   ```
+
+4. 编写修改接口
+
+   ```java
+   @PutMapping("/employee")
+   public String updateEmployee(Employee employee) {
+       employeeDao.saveOrUpdate(employee);
+       return "redirect:/employees";
+   }
+   ```
+
 ## 执行流程
 
 ## 注解配置
