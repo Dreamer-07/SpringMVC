@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="06-file:war">
+    <output-path>$PROJECT_DIR$/06-file/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <exploded>false</exploded>
+        <module>06-file</module>
+        <packaging>war</packaging>
+        <unpackNestedArchives>false</unpackNestedArchives>
+      </options>
+    </properties>
+    <root id="archive" name="06-file-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="06-file:war exploded" />
+    </root>
+  </artifact>
+</component>

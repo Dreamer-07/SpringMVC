@@ -1137,7 +1137,91 @@ public class TestController {
 
 作用：用于接口的返回值类型，该接口的返回值就是响应到游览器的响应报文
 
-## 执行流程
+## 文件上传和下载
+
+### 文件下载
+
+> 使用 ResponseEntity 实现文件下载
+
+```java
+@GetMapping("/fileDown")
+public ResponseEntity<byte[]> fileDown(HttpSession session) throws IOException {
+    // 获取文件所在路径
+    String filePath = session.getServletContext().getRealPath("/static/images/travel.png");
+    // 创建输入流
+    FileInputStream fis = new FileInputStream(filePath);
+    // 创建字节数组，大小为文件大小
+    byte[] bytes = new byte[fis.available()];
+    // 将流数据读取到数组中
+    fis.read(bytes);
+
+    // 创建 HttpHeaders 设置响应头信息
+    MultiValueMap<String, String> headers = new HttpHeaders();
+    // 设置下载文件的方式和名字
+    headers.add("Content-Disposition", "attachment;filename=travel.png");
+    //创建 ResponseEntity 对象
+    return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+}
+```
+
+### 文件上传
+
+1. 导入依赖
+
+   ```xml
+   <dependency>
+       <groupId>commons-fileupload</groupId>
+       <artifactId>commons-fileupload</artifactId>
+       <version>1.3.1</version>
+   </dependency>
+   ```
+
+2. 在 `spring-mvc.xml`配置文件上传解析器
+
+   ```xml
+   <!-- 配置文件上传解析器 -->
+   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+   ```
+
+3. 创建接口
+
+   ```java
+   @PostMapping("/fileUpload")
+   @ResponseBody
+   public String fileUpload(MultipartFile photo, HttpSession session) throws IOException {
+       // 获取源文件名
+       String originalFilename = photo.getOriginalFilename();
+       // 获取保存图片文件夹路径
+       String photoPath = session.getServletContext().getRealPath("photo");
+       // 判断文件夹是否存在，如果不存在就创建对应的目录
+       File file = new File(photoPath);
+       if (!file.exists()) {
+           file.mkdir();
+       }
+       // 获取文件后缀并使用 UUID 随机生成一个文件名保证文件名不重复
+       String filename = UUID.randomUUID().toString().replaceAll("-","") + originalFilename.substring(originalFilename.lastIndexOf("."));
+       // 设置图片路径
+       String finalPath = photoPath + File.separator + filename;
+       // 保存图片
+       photo.transferTo(new File(finalPath));
+       return "success";
+   }
+   ```
+
+4. 添加 form 表单
+
+   **method** 必须用 `post` && **enctype** 必须用 `multipart/form-data`
+
+   ```html
+   <form th:action="@{/fileUpload}" method="post" enctype="multipart/form-data">
+       上传头像: <input type="file" name="photo" />
+       <input type="submit" value="提交">
+   </form>
+   ```
+   
+5. 可以观察 `target/项目名` 下的文件夹
+
+   ![image-20220121110846480](README.assets/image-20220121110846480.png)
 
 ## 注解配置
 
