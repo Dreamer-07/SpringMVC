@@ -1494,10 +1494,212 @@ public class CustomExceptionHandler {
 }
 ```
 
-
-
-
-
-
-
 ## 注解配置 SpringMVC
+
+### 创建初始化类，代替 web.xml
+
+在 Servlet3.0 的环境中，容器会在类路径中查找实现 **javax.servlet.ServletContainerInitializer** 接口的类，如果存在就是用它来配置 Servlet 容器
+
+Spring 提供了这个接口的容器，名为 **SpringServletContainerInitializer** ，这个类反过来会查找实现了 **WebApplicationInitializer** 的类并将配置的任务交给它们来完成，Spring3 引入了一个基础实现，名为 **AbstractAnnotationConfigDispatcherServletInitializer**
+
+当我们写的类扩展了 **AbstractAnnotationConfigDispatcherServletInitializer** 并将其部署到 Servlet3.0 容器时，容器会自动发现它，并用它来配置上下文
+
+```java
+public class WebInitConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+
+    /**
+     * Spring 配置类
+     * @return
+     */
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class[]{SpringConfig.class};
+    }
+
+    /**
+     * SpringMVC Web 配置类
+     * @return
+     */
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class[]{WebConfig.class};
+    }
+
+    /**
+     * DispatcherServlet 的映射路径
+     * @return
+     */
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"};
+    }
+
+    /**
+     * 配置过滤器
+     * @return
+     */
+    @Override
+    protected Filter[] getServletFilters() {
+        // 配置字符编码过滤器
+        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+        characterEncodingFilter.setEncoding("UTF-8");
+        characterEncodingFilter.setForceResponseEncoding(true);
+
+        // 开启 SpringMVC 对 RestFul Api 的支持
+        HiddenHttpMethodFilter hiddenHttpMethodFilter = new HiddenHttpMethodFilter();
+        return new Filter[]{characterEncodingFilter, hiddenHttpMethodFilter};
+    }
+}
+```
+
+> 配置 MVC 注解驱动和组件扫描
+
+```java
+@Configuration
+@ComponentScan("pers.prover07.mvc") // 配置组件扫描
+@EnableWebMvc // 开启注解驱动
+public class WebConfig {
+```
+
+> 配置视图解析器
+
+```java
+/**
+* 配置生成模板解析器
+* @return
+*/
+@Bean
+public ITemplateResolver templateResolver() {
+    WebApplicationContext webApplicationContext = ContextLoader.getCurrentWebApplicationContext();
+    ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(webApplicationContext.getServletContext());
+    templateResolver.setPrefix("/WEB-INF/templates/");
+    templateResolver.setSuffix(".html");
+    templateResolver.setCharacterEncoding("UTF-8");
+    templateResolver.setTemplateMode("UTF-8");
+    return templateResolver;
+}
+
+/**
+* 配置模板引擎并注入模板解析器
+* @param templateResolver
+* @return
+*/
+@Bean
+public SpringTemplateEngine templateEngine(ITemplateResolver templateResolver) {
+    SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+    templateEngine.setTemplateResolver(templateResolver);
+    return templateEngine;
+}
+
+/**
+* 配置视图解析器并配置对应的模板引擎
+* @param templateEngine
+* @return
+*/
+@Bean
+public ViewResolver viewResolver(SpringTemplateEngine templateEngine) {
+    ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+    viewResolver.setTemplateEngine(templateEngine);
+    viewResolver.setCharacterEncoding("UTF-8");
+    return viewResolver;
+}
+```
+
+> 配置处理静态资源的 Servlet
+
+```java
+public class WebConfig implements WebMvcConfigurer {
+    
+    ...
+    
+    /**
+     * 配置静态资源处理 Servlet
+     * @param configurer
+     */
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+    
+    ...
+
+}
+```
+
+> 配置拦截器
+
+```java
+public class WebConfig implements WebMvcConfigurer {
+    
+    ...
+    
+    /**
+     * 注册配置拦截器
+     * @param registry
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 配置拦截器及其对应的 匹配/不匹配 的路径
+        registry.addInterceptor(new TestInterceptor()).addPathPatterns("/**").excludePathPatterns("/");
+    }
+
+    ...
+
+}
+```
+
+> 配置视图控制器
+
+```java
+public class WebConfig implements WebMvcConfigurer {
+
+    ...
+
+    @Override
+        public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/hello").setViewName("hello");
+    }
+
+    ...
+}
+```
+
+> 配置文件上传解析器
+
+```java
+/**
+* 配置文件上传解析器
+* @return
+*/
+@Bean
+public MultipartResolver multipartResolver() {
+    return new CommonsMultipartResolver();
+}
+```
+
+> 配置异常处理器(将原有的基于配置文件的方式，如果是注解的不需要这个)
+
+```java
+public class WebConfig implements WebMvcConfigurer {
+    
+    ...
+
+    /**
+	* 自定义配置异常处理器
+	* @param resolvers
+	*/
+    @Override
+    public void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+        SimpleMappingExceptionResolver exceptionResolver = new SimpleMappingExceptionResolver();
+        Properties properties = new Properties();
+        properties.setProperty("java.lang.ArithmeticException", "error");
+        exceptionResolver.setExceptionMappings(properties);
+        exceptionResolver.setExceptionAttribute("ex");
+    }
+    
+    
+    ...
+}
+```
+

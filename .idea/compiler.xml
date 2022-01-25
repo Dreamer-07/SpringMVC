@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="02-api" />
+        <module name="08-annotation" />
         <module name="04-rest-demo" />
         <module name="01-hello-world" />
         <module name="06-file" />
@@ -23,6 +24,7 @@
       <module name="05-message-covert" target="1.8" />
       <module name="06-file" target="1.8" />
       <module name="07-options" target="1.8" />
+      <module name="08-annotation" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

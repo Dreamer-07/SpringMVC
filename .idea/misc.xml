@@ -8,6 +8,7 @@
     <file type="web" url="file://$PROJECT_DIR$/05-message-covert" />
     <file type="web" url="file://$PROJECT_DIR$/06-file" />
     <file type="web" url="file://$PROJECT_DIR$/07-options" />
+    <file type="web" url="file://$PROJECT_DIR$/08-annotation" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
@@ -19,6 +20,7 @@
         <option value="$PROJECT_DIR$/05-message-covert/pom.xml" />
         <option value="$PROJECT_DIR$/06-file/pom.xml" />
         <option value="$PROJECT_DIR$/07-options/pom.xml" />
+        <option value="$PROJECT_DIR$/08-annotation/pom.xml" />
       </list>
     </option>
   </component>
