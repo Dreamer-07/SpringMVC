@@ -1450,4 +1450,54 @@ public class CustomInterceptor implements HandlerInterceptor {
 
 ## 异常处理器
 
+SpringMVC 提供了一个处理 控制器方法执行过程中所出现的异常 的接口：**HandlerExceptionResolver**
+
+该接口有两个常用的实现类：HandlerExceptionResolver(自定义异常处理用) & HandlerExceptionResolver(SpringMVC 默认使用)
+
+原理：该接口中有一个方法 `ModelAndView resolveException` 该方法就是处理异常后返回一个新的 **ModelAndView** 对象
+
+### 基于配置的异常处理
+
+```xml
+<!-- 配置异常处理器 -->
+<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+    <!-- 设置异常和视图的映射关系 -->
+    <property name="exceptionMappings">
+        <props>
+            <!-- key 为 异常的全类名 -->
+            <!-- value 为视图名，走视图解析器(可以带前缀) -->
+            <prop key="java.lang.ArithmeticException">error</prop>
+        </props>
+    </property>
+    <!-- 异常信息在请求域中的 key -->
+    <property name="exceptionAttribute" value="ex" />
+</bean>
+```
+
+![image-20220125113809958](README.assets/image-20220125113809958.png)
+
+### 基于注解的异常处理
+
+```java
+// 扩展 Spring 组件
+@ControllerAdvice
+public class CustomExceptionHandler {
+
+    // @ExceptionHandler 表示来处理的异常
+    @ExceptionHandler({ ArithmeticException.class, NullPointerException.class })
+    // 通过设置形参 Exception; Spring MVC 会帮助我们将异常对象注入进来
+    public String handleArithmeticException(Exception ex, Model model) {
+        model.addAttribute("ex", ex);
+        return "error";
+    }
+
+}
+```
+
+
+
+
+
+
+
 ## 注解配置 SpringMVC

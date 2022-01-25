@@ -50,4 +50,19 @@
     <!-- 开启 MVC 注解驱动 -->
     <mvc:annotation-driven/>
 
+
+<!--    &lt;!&ndash; 配置异常处理器 &ndash;&gt;
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        &lt;!&ndash; 设置异常和视图的映射关系 &ndash;&gt;
+        <property name="exceptionMappings">
+            <props>
+                &lt;!&ndash; key 为 异常的全类名 &ndash;&gt;
+                &lt;!&ndash; value 为视图名，走视图解析器(可以带前缀) &ndash;&gt;
+                <prop key="java.lang.ArithmeticException">error</prop>
+            </props>
+        </property>
+        &lt;!&ndash; 异常信息在请求域中的 key &ndash;&gt;
+        <property name="exceptionAttribute" value="ex" />
+    </bean>-->
+
 </beans>
