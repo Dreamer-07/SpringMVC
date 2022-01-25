@@ -1223,6 +1223,231 @@ public ResponseEntity<byte[]> fileDown(HttpSession session) throws IOException {
 
    ![image-20220121110846480](README.assets/image-20220121110846480.png)
 
-## 注解配置
+## 拦截器
 
-## 扩展功能
+### 使用
+
+和 **过滤器 Filter** 不同，拦截器是在 DispatcherServlet 调用控制器接口方法前后执行的，有三个方法在不同的时机执行：
+
+- `preHandler`: 在控制器方法执行之前执行，如果该方法不返回 **true** 那么对应的接口方法也不会执行
+- `postHandler`: 在控制器方法执行之后执行
+- `afterCompletion`： 在控制器方法执行之后，在模型数据渲染视图完成之后执行
+
+自定义一个拦截器：实现 **HandlerInterceptor** 接口，并重写上述的三个方法即可
+
+```java
+public class CustomInterceptor implements HandlerInterceptor {
+
+    /**
+     * 在控制器方法执行之前执行
+     * @param request
+     * @param response
+     * @param handler
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("interceptor-->pre");
+        return true;
+    }
+
+    /**
+     * 在控制器方法之后执行
+     * @param request
+     * @param response
+     * @param handler
+     * @param modelAndView
+     * @throws Exception
+     */
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        System.out.println("interceptor-->post");
+    }
+
+    /**
+     * 在控制器方法渲染视图之后执行
+     * @param request
+     * @param response
+     * @param handler
+     * @param ex
+     * @throws Exception
+     */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        System.out.println("interceptor-->afterCompletion");
+    }
+}
+```
+
+在 **SpringMVC** 中配置组件：
+
+1. 通过 `bean` 配置
+
+   ```xml
+   <!-- 配置拦截器 -->
+   <mvc:interceptors>
+       <!-- 通过 ref / bean 配置的拦截器，是对 DispatcherServlet 所处理的所有请求进行拦截 -->
+       <bean class="pers.prover07.mvc.interceptor.CustomInterceptor" />
+   </mvc:interceptors>
+   ```
+
+2. 通过 `ref`  +  `@Component` 配置
+
+   ```xml
+   <!-- 配置拦截器 -->
+   <mvc:interceptors>
+       <!-- 通过 ref / bean 配置的拦截器，是对 DispatcherServlet 所处理的所有请求进行拦截 -->
+       <ref bean="customInterceptor" />
+   </mvc:interceptors>
+   ```
+
+   ```java
+   @Component
+   public class CustomInterceptor implements HandlerInterceptor {
+   ```
+
+3. 通过 `<mvc:interceptor>` 配置
+
+   ```xml
+   <!-- 配置拦截器 -->
+   <mvc:interceptors>
+       <!-- 通过 mvc:interceptor 配置拦截器，可以通过相应的属性配置 拦截/不拦截的路径 -->
+       <mvc:interceptor>
+           <mvc:mapping path="/**"/>
+           <mvc:exclude-mapping path="/"/>
+           <ref bean="customInterceptor" />
+       </mvc:interceptor>
+   </mvc:interceptors>
+   ```
+
+### 源码 - 拦截器执行顺序
+
+1. **DispatcherServlet** 中的 `doDispatch()` 方法负责调用请求路径对应的控制器接口方法
+
+   ```java
+   protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+       ...
+       
+       // 执行拦截器的 preHandle() 方法
+       if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+           return;
+       }
+   
+       // 执行控制器接口方法
+       mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+   
+       if (asyncManager.isConcurrentHandlingStarted()) {
+           return;
+       }
+   
+       applyDefaultViewName(processedRequest, mv);
+       // 执行拦截器的 postHandle() 方法
+       mappedHandler.applyPostHandle(processedRequest, response, mv);
+   
+       ...
+       
+       // 渲染视图模型数据
+   	processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+   
+   	
+   	...
+   }
+   ```
+
+   `mappedHandler` 属性包含了当前请求路径对应的 `handler`(对应的控制器接口) 和 `interceptorList`(匹配该路径的拦截器集合)
+
+2. **mappedHandler.applyPreHandle()** - 按拦截器链的顺序(按照配置文件中从上到下排序)依次执行拦截器的 `preHandle()` 方法
+
+   ```java
+   boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+       // interceptorList 为拦截器集合
+       for (int i = 0; i < this.interceptorList.size(); i++) {
+           HandlerInterceptor interceptor = this.interceptorList.get(i);
+           // 调用 preHandle() 方法
+           if (!interceptor.preHandle(request, response, this.handler)) {
+               triggerAfterCompletion(request, response, null);
+               return false;
+           }
+           // 如果 interceptor.preHandle 不返回 false，则 interceptorIndex + 1
+           this.interceptorIndex = i;
+       }
+       return true;
+   }
+   ```
+
+3. **mappedHandler.applyPostHandle()** - 按拦截器的反序依次执行拦截器的 `postHandle()` 方法
+
+   ```java
+   void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
+       throws Exception {
+   
+       // 通过 i--，所以是反序执行拦截器链中的方法
+       for (int i = this.interceptorList.size() - 1; i >= 0; i--) {
+           HandlerInterceptor interceptor = this.interceptorList.get(i);
+           // 调用拦截器的 postHandle() 方法
+           interceptor.postHandle(request, response, this.handler, mv);
+       }
+   }
+   ```
+
+4. **processDispatchResult()** - 负责处理渲染模型数据
+
+   ```java
+   private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
+                                      @Nullable HandlerExecutionChain mappedHandler, @Nullable ModelAndView mv,
+                                      @Nullable Exception exception) throws Exception {
+   
+       ...
+   
+       // Did the handler return a view to render?
+       if (mv != null && !mv.wasCleared()) {
+           // 渲染视图
+           render(mv, request, response);
+           ...
+       }
+       
+      	...
+   
+       if (mappedHandler != null) {
+           // 调用拦截器的 afterCompletion() 方法
+           mappedHandler.triggerAfterCompletion(request, response, null);
+       }
+   }
+   ```
+
+5. **mappedHandler.triggerAfterCompletion()** - 按照 **一定顺序** 执行拦截器链中拦截器的 `afterCompletion()` 方法 
+
+   ```java
+   void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex) {
+       // 遍历顺序为执行 mappedHandler.applyPostHandle() 方法时留下的 interceptorIndex; 通过 i-- 反序执行
+       for (int i = this.interceptorIndex; i >= 0; i--) {
+           HandlerInterceptor interceptor = this.interceptorList.get(i);
+           try {
+               // 调用拦截器的 afterCompletion() 方法
+               interceptor.afterCompletion(request, response, this.handler, ex);
+           }
+           catch (Throwable ex2) {
+               logger.error("HandlerInterceptor.afterCompletion threw exception", ex2);
+           }
+       }
+   }
+   ```
+
+6. 注意：当执行 **mappedHandler.applyPreHandle()** 方法调用拦截器的 `preHandle()` 方法时，如果该方法返回 **false**
+
+   ![image-20220125111300099](README.assets/image-20220125111300099.png)
+
+   由于 **triggerAfterCompletion()** 的执行顺序会按照 `interceptorIndex` 属性而定，所以当有拦截器返回 false 时：
+
+   所有 **拦截器的 postHandle()** 方法都不会执行，
+
+   在**该拦截器之后的拦截器的 preHandle()** 方法都不会执行，
+
+   在**该拦截器之后的拦截器包括它自己的 afterCompletion()** 方法都不会执行
+
+   
+
+## 异常处理器
+
+## 注解配置 SpringMVC

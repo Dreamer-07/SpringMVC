@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="07-options:war">
+    <output-path>$PROJECT_DIR$/07-options/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <exploded>false</exploded>
+        <module>07-options</module>
+        <packaging>war</packaging>
+        <unpackNestedArchives>false</unpackNestedArchives>
+      </options>
+    </properties>
+    <root id="archive" name="07-options-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="07-options:war exploded" />
+    </root>
+  </artifact>
+</component>

@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/04-rest-demo/04-rest-demo.iml" filepath="$PROJECT_DIR$/04-rest-demo/04-rest-demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/05-message-covert/05-message-covert.iml" filepath="$PROJECT_DIR$/05-message-covert/05-message-covert.iml" />
       <module fileurl="file://$PROJECT_DIR$/06-file/06-file.iml" filepath="$PROJECT_DIR$/06-file/06-file.iml" />
+      <module fileurl="file://$PROJECT_DIR$/07-options/07-options.iml" filepath="$PROJECT_DIR$/07-options/07-options.iml" />
     </modules>
   </component>
 </project>
